@@ -44,7 +44,16 @@ class DataGenerator(tf.keras.utils.Sequence):
 
         for i, (path, label) in enumerate(zip(wav_paths, labels)):
             rate, wav = wavfile.read(path)
+            # print("rate")
+            # print(rate)
+            # print(wav.shape)
+            expected_length = int(self.sr * self.dt)
+            if len(wav) < expected_length:
+                wav = np.pad(wav, (0, expected_length - len(wav)))
+            elif len(wav) > expected_length:
+                wav = wav[:expected_length]
             X[i,] = wav.reshape(-1, 1)
+            # print(label)
             Y[i,] = to_categorical(label, num_classes=self.n_classes)
 
         return X, Y
@@ -99,19 +108,19 @@ def train(args):
                          mode='auto', save_freq='epoch', verbose=1)
     csv_logger = CSVLogger(csv_path, append=False)
     model.fit(tg, validation_data=vg,
-              epochs=30, verbose=1,
+              epochs=20, verbose=1,
               callbacks=[csv_logger, cp])
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Audio Classification Training')
-    parser.add_argument('--model_type', type=str, default='lstm',
+    parser.add_argument('--model_type', type=str, default='conv2d',
                         help='model to run. i.e. conv1d, conv2d, lstm')
     parser.add_argument('--src_root', type=str, default='clean',
                         help='directory of audio files in total duration')
-    parser.add_argument('--batch_size', type=int, default=16,
+    parser.add_argument('--batch_size', type=int, default=24,
                         help='batch size')
-    parser.add_argument('--delta_time', '-dt', type=float, default=1.0,
+    parser.add_argument('--delta_time', '-dt', type=float, default=2.5,
                         help='time in seconds to sample audio')
     parser.add_argument('--sample_rate', '-sr', type=int, default=16000,
                         help='sample rate of clean audio')

@@ -54,13 +54,13 @@ def make_prediction(args):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Audio Classification Training')
-    parser.add_argument('--model_fn', type=str, default='models/lstm.h5',
+    parser.add_argument('--model_fn', type=str, default='models/conv1d.h5',
                         help='model file to make predictions')
     parser.add_argument('--pred_fn', type=str, default='y_pred',
                         help='fn to write predictions in logs dir')
     parser.add_argument('--src_dir', type=str, default='wavfiles',
                         help='directory containing wavfiles to predict')
-    parser.add_argument('--dt', type=float, default=1.0,
+    parser.add_argument('--dt', type=float, default=2.5,
                         help='time in seconds to sample audio')
     parser.add_argument('--sr', type=int, default=16000,
                         help='sample rate of clean audio')
