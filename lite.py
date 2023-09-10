@@ -17,5 +17,8 @@ tflite_model = converter.convert()
 
 
 # Save the TFLite model
-with open('model.tflite', 'wb') as f:
+with open('model1.tflite', 'wb') as f:
     f.write(tflite_model)
+    
+
+
