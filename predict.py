@@ -74,6 +74,7 @@ def make_prediction_lite(args):
     le = LabelEncoder()
     y_true = le.fit_transform(labels)
     results = []
+    values = {}
 
     for z, wav_fn in tqdm(enumerate(wav_paths), total=len(wav_paths)):
         rate, wav = downsample_mono(wav_fn, args.sr)
@@ -111,8 +112,20 @@ def make_prediction_lite(args):
         y_pred = np.argmax(y_mean)
         real_class = os.path.dirname(wav_fn).split('/')[-1]
         print('Actual class: {}, Predicted class: {}'.format(real_class, classes[y_pred]))
+        if real_class not in values:
+            values[real_class] = []
+        values[real_class].append(y_mean)
         results.append(y_mean)
 
+
+    for k, v in values.items():
+        values[k] = (np.mean(v, axis=0), np.std(v, axis=0))
+        
+    # save values as josn
+    with open(os.path.join('logs', args.pred_fn + '.json'), 'w') as f:
+        # convert np.array to list
+        values = {k: (v[0].tolist(), v[1].tolist()) for k, v in values.items()}
+        json.dump(values, f)
     np.save(os.path.join('logs', args.pred_fn), np.array(results))
     
     
