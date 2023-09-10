@@ -114,6 +114,8 @@ def make_prediction_lite(args):
         print('Actual class: {}, Predicted class: {}'.format(real_class, classes[y_pred]))
         if real_class not in values:
             values[real_class] = []
+        # take softmax of y_mean
+        y_mean = np.exp(y_mean) / np.sum(np.exp(y_mean))
         values[real_class].append(y_mean)
         results.append(y_mean)
 
