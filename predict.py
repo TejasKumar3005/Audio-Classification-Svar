@@ -7,6 +7,7 @@ from glob import glob
 import argparse
 import os
 import pandas as pd
+import json
 from tqdm import tqdm
 import tensorflow as tf
 
@@ -14,6 +15,11 @@ import faulthandler
 faulthandler.enable()
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
+with open("f.json", 'w') as f:
+        # convert np.array to list
+        values = {}
+        values["a"] = ([1,2,3],[1,2,3])
+        json.dump(values, f)
 
 def make_prediction(args):
 
@@ -100,21 +106,24 @@ def make_prediction_lite(args):
             interpreter.set_tensor(input_details[0]['index'], [x])
             interpreter.invoke()
             output_data = interpreter.get_tensor(output_details[0]['index'])
-            print("output_data")
+            # print("output_data")
             
-            print(output_data)
+            # print(output_data)
             y_pred.append(output_data)
 
         y_mean = np.mean(y_pred, axis=0)
-        print("y_mean")
+        # print("y_mean")
         
-        print(y_mean)
+        # print(y_mean)
         y_pred = np.argmax(y_mean)
         real_class = os.path.dirname(wav_fn).split('/')[-1]
         print('Actual class: {}, Predicted class: {}'.format(real_class, classes[y_pred]))
         if real_class not in values:
             values[real_class] = []
+        # take softmax of y_mean
+        # y_mean = np.exp(y_mean) / np.sum(np.exp(y_mean))
         values[real_class].append(y_mean)
+        print(y_mean)
         results.append(y_mean)
 
 
@@ -134,7 +143,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Audio Classification Training')
     parser.add_argument('--model_fn', type=str, default='model1.tflite',
                         help='model file to make predictions')
-    parser.add_argument('--pred_fn', type=str, default='tflite_pred',
+    parser.add_argument('--pred_fn', type=str, default='tflite_pred_1',
                         help='fn to write predictions in logs dir')
     parser.add_argument('--src_dir', type=str, default='wavfiles',
                         help='directory containing wavfiles to predict')
