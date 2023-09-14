@@ -48,6 +48,9 @@ def classify(model_path, voice_path, values, sample_class):
 
     y_mean = np.mean(y_pred, axis=0)
     
+    # get position of sample_class in values
+    i = values.keys().index(sample_class)
+    
     prob = np.prod(gaussian_pdf(y_mean, values[sample_class][0][0], values[sample_class][1][0]))
     
     print(prob)
@@ -60,6 +63,7 @@ with open('./logs/tflite_pred_1.json', 'r') as f:
 model = "./model1.tflite"
 dataset_dir = "./wavfiles"
 for root, dirs, files in os.walk(dataset_dir):
+    print(dirs)
     for dirs in dirs:
         for root, dirs, files in os.walk(os.path.join(dataset_dir, dirs)):
             for file in files:
