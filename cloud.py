@@ -3,16 +3,25 @@ import json
 import tensorflow as tf
 from clean import downsample_mono, envelope
 import os
+from scipy.spatial.distance import cosine
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 
 def gaussian_pdf(x, mean, std):
+    # x= np.array(x)
+    # mean = np.array(mean)
+    # std = np.array(std)
     exponent = np.exp(-((x-mean)**2 / (2 * std**2 )))
-    return (1 / (np.sqrt(2 * np.pi) * std)) * exponent
+    # return (1 / (np.sqrt(2 * np.pi) * std)) * exponent #/ 100
+    return exponent
 
 def classify(model_path, voice_path, values, sample_class):
     
     # sample_embedding: 44-dimensional embedding of the sample
     # values: dictionary of class means and standard deviations
     # sample_class: class of the sample
+    # sample_class = "sound 'a'"
     
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
@@ -48,24 +57,25 @@ def classify(model_path, voice_path, values, sample_class):
 
     y_mean = np.mean(y_pred, axis=0)
     
-    # get position of sample_class in values
-    i = values.keys().index(sample_class)
+
+    print(sample_class)
     
-    prob = np.prod(gaussian_pdf(y_mean, values[sample_class][0][0], values[sample_class][1][0]))
-    
+    # prob = (gaussian_pdf(y_mean, values[sample_class][0][0], values[sample_class][1][0]))[i]
+    dist = cosine(y_mean,values[sample_class][0] )
+    prob = gaussian_pdf(dist, 0 , values[sample_class][1]) **(0.5)
     print(prob)
 
 
 # import ./logs/tflite_pred_1.json
-with open('./logs/tflite_pred_1.json', 'r') as f:
+with open('./logs/tflite_cloud.json', 'r') as f:
     values = json.load(f)
 
 model = "./model1.tflite"
 dataset_dir = "./wavfiles"
 for root, dirs, files in os.walk(dataset_dir):
     print(dirs)
-    for dirs in dirs:
-        for root, dirs, files in os.walk(os.path.join(dataset_dir, dirs)):
+    for folder in dirs:
+        for root, _, files in os.walk(os.path.join(dataset_dir, folder)):
             for file in files:
                 if file.endswith(".wav"):
-                    classify(model, os.path.join(dataset_dir, dirs, file), values, dirs)
+                    classify(model, os.path.join(dataset_dir, folder, file), values, folder)
