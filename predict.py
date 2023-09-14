@@ -10,7 +10,7 @@ import pandas as pd
 import json
 from tqdm import tqdm
 import tensorflow as tf
-
+from scipy.spatial.distance import cosine
 import faulthandler
 faulthandler.enable()
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
@@ -126,9 +126,11 @@ def make_prediction_lite(args):
         print(y_mean)
         results.append(y_mean)
 
-
     for k, v in values.items():
-        values[k] = (np.mean(v, axis=0), np.std(v, axis=0))
+        mean_vector = np.mean(v, axis=0)[0]
+        cosine_distances = [cosine(mean_vector, vec) for vec in v]
+        values[k] = (mean_vector, np.std(cosine_distances))
+
         
     # save values as josn
     with open(os.path.join('logs', args.pred_fn + '.json'), 'w') as f:
@@ -143,7 +145,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Audio Classification Training')
     parser.add_argument('--model_fn', type=str, default='model1.tflite',
                         help='model file to make predictions')
-    parser.add_argument('--pred_fn', type=str, default='tflite_pred_1',
+    parser.add_argument('--pred_fn', type=str, default='tflite_cloud',
                         help='fn to write predictions in logs dir')
     parser.add_argument('--src_dir', type=str, default='wavfiles',
                         help='directory containing wavfiles to predict')
